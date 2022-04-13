@@ -50,6 +50,7 @@ void matrixmultnothread(matrices &compute){
 void *matrixmultrowthreads(void *vars){
   matrices *compute=static_cast<matrices*>(vars);
   int i;
+  double tempcell[matC];
   long unsigned int tid=gettid();
   //cout<<"got here";
   for(i=0;i<TC_row;i++){
@@ -59,8 +60,9 @@ void *matrixmultrowthreads(void *vars){
   }
   for (int j=0;j<matC;j++){
     for(int k=0;k<matC;k++){
-      compute->product[i][j] += compute->matA[i][k] *compute->matB[k][j];
+      tempcell[j] += compute->matA[i][k] *compute->matB[k][j];
     }
+    compute->product[i][j]=tempcell[j];
   }
   //cout<<i<<endl;
   pthread_exit(NULL);
@@ -162,7 +164,6 @@ int main(){
           for (int i=0;i<TC_row;i++){
             pthread_join(trows[i],NULL);
           }
-        
           passes++;
         }
         cout<<passes<<endl;
