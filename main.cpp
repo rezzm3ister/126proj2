@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/syscall.h>
+#include <algorithm>
 
 #define matR 10
 #define matC 10
@@ -26,7 +27,7 @@ struct matrices{
   int r2=matR;
   int c1=matC;
   int c2=matC;
-  int threadid;
+  vector<int> threadids;
 };
 
 
@@ -44,14 +45,38 @@ void matrixmultnothread(matrices &compute){
 
 void *matrixmultrowthreads(void *vars){
   matrices *compute=static_cast<matrices*>(vars);
-  cout<<syscall(SYS_gettid)<<"penis"<<endl;
+  int i=69;
+  int tid=gettid();
 
-  for (int j=0;j<matC;j++){
-    for(int k=0;k<matC;k++){
-      compute->product[compute->threadid][j] += compute->matA[compute->threadid][k] *compute->matB[k][j];
+  /*
+  std::vector<int>::iterator it=find(compute->threadids.begin(),compute->threadids.end(),tid);
+  if(it!=compute->threadids.end()){
+    i=distance(compute->threadids.begin(),it);
+  }
+  else{
+    compute->threadids.push_back(tid);
+  } 
+
+  
+  }
+  */
+  compute->threadids.push_back(tid);
+
+  for(int j=0;j<compute->threadids.size();j++){
+    if(compute->threadids[j]==tid){
+      i=j;
     }
   }
+  if(i!=69){
+  for (int j=0;j<matC;j++){
+    for(int k=0;k<matC;k++){
+      compute->product[i][j] += compute->matA[i][k] *compute->matB[k][j];
+    }
+  }
+  cout<<i<<endl;
+
   pthread_exit(NULL);
+}
 }
 
 
@@ -116,8 +141,9 @@ int main(){
   int tcreation;
 
   for (int i=0;i<TC_row;i++){
-    vars.threadid=i;
+    //vars.threadid=i;
     tcreation=pthread_create(&trows[i],NULL,matrixmultrowthreads,(void*)&vars);
+    //cout<<i<<endl;
     if(tcreation){
       cout<<"cant make thread "<<tcreation<<endl;
       exit(-1);
@@ -126,5 +152,5 @@ int main(){
    for (int i=0;i<TC_row;i++){
     pthread_join(trows[i],NULL);
     }
-    //showproductout(vars);
+    showproductout(vars);
 }
