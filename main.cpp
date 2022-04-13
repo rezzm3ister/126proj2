@@ -5,9 +5,15 @@
 #include <ctime>
 #include <cstdlib>
 #include <vector>
+#include <pthread.h>
 
 #define matR 10
 #define matC 10
+
+//make sure TC_row == matR
+#define TC_row 10
+//make sure TC_indiv == matR*matC
+#define TC_indiv 100
 
 
 using namespace std;
@@ -21,6 +27,19 @@ void matrixmultnothread(double (&matA)[matC][matR],double (&matB)[matC][matR],do
     }
   }
 }
+
+
+void *matrixmultrowthreads(void *threadid, double (&matA)[matC][matR],double (&matB)[matC][matR],double (&product)[matC][matR]){
+  int i=(int)threadid;
+  for (int j=0;j<matC;j++){
+    for(int k=0;k<matC;k++){
+      product[i][j] += matA[i][k] * matB[k][j];
+    }
+  }
+
+}
+
+
 
 void showproduct(double (&product)[matC][matR]){
   for (int i = 0; i < matR; i++){
@@ -58,7 +77,7 @@ int main(){
   int c1=matC;
   int c2=matC;
   srand(time(0));
-
+  //matrix fill
   for (int i = 0; i < r1; i++)
     {
       for (int j = 0; j < c1; j++)
@@ -70,13 +89,22 @@ int main(){
       for (int j = 0; j < c1; j++){
         matB[i][j] = rand() % 10;
         }
+    } 
+  //no threads here
+  //matrixmultnothread(matA,matB,product);
+
+  //thread per row
+  pthread_t trows[TC_row];
+  int tcreation;
+
+  for (int i=0;i<TC_row;i++){
+    tcreation=pthread_create(&trows[i],NULL,matrixmultrowthreads,(void*)i);
+    if(tcreation){
+      cout<<"cant make thread "<<tcreation<<endl;
+      exit(-1);
     }
+  }
 
-
-  matrixmultnothread(matA,matB,product);
-
-  //showmatrices(matA,matB);
-  //cout<<endl;
-  showproduct(product);
+  showproduct();
 
 }
