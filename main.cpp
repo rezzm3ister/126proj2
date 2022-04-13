@@ -6,6 +6,9 @@
 #include <cstdlib>
 #include <vector>
 #include <pthread.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 #define matR 10
 #define matC 10
@@ -15,36 +18,47 @@
 //make sure TC_indiv == matR*matC
 #define TC_indiv 100
 
-
 using namespace std;
 
-void matrixmultnothread(double (&matA)[matC][matR],double (&matB)[matC][matR],double (&product)[matC][matR]){
+struct matrices{
+  double matA[matC][matR],matB[matC][matR], product[matC][matR];
+  int r1=matR;
+  int r2=matR;
+  int c1=matC;
+  int c2=matC;
+  int threadid;
+};
+
+
+
+void matrixmultnothread(matrices &compute){
   for(int i=0;i<matR;i++){
     for (int j=0;j<matC;j++){
       for(int k=0;k<matC;k++){
-        product[i][j] += matA[i][k] * matB[k][j];
+        compute.product[i][j] += compute.matA[i][k] * compute.matB[k][j];
       }
     }
   }
 }
 
 
-void *matrixmultrowthreads(void *threadid, double (&matA)[matC][matR],double (&matB)[matC][matR],double (&product)[matC][matR]){
-  int i=(int)threadid;
+void *matrixmultrowthreads(void *vars){
+  matrices *compute=static_cast<matrices*>(vars);
+  cout<<syscall(SYS_gettid)<<"penis"<<endl;
+
   for (int j=0;j<matC;j++){
     for(int k=0;k<matC;k++){
-      product[i][j] += matA[i][k] * matB[k][j];
+      compute->product[compute->threadid][j] += compute->matA[compute->threadid][k] *compute->matB[k][j];
     }
   }
-
+  pthread_exit(NULL);
 }
 
 
-
-void showproduct(double (&product)[matC][matR]){
+void showproductout(matrices output){
   for (int i = 0; i < matR; i++){
     for(int j = 0; j < matC; j++){
-      cout<<product[i][j]<<" ";
+      cout<<output.product[i][j]<<" ";
     }
     cout<<endl;
   }
@@ -71,40 +85,46 @@ void showmatrices(double (&matA)[matC][matR],double (&matB)[matC][matR]){
 }
 
 int main(){
+  /* moved to struct
   double matA[matC][matR],matB[matC][matR], product[matC][matR];
   int r1=matR;
   int r2=matR;
   int c1=matC;
   int c2=matC;
+  */
+  matrices vars; 
   srand(time(0));
   //matrix fill
-  for (int i = 0; i < r1; i++)
+  for (int i = 0; i < vars.r1; i++)
     {
-      for (int j = 0; j < c1; j++)
+      for (int j = 0; j < vars.c1; j++)
       {
-        matA[i][j] = rand() % 10;
+        vars.matA[i][j] = rand() % 10;
       }
     }
-    for (int i = 0; i < r1; i++){
-      for (int j = 0; j < c1; j++){
-        matB[i][j] = rand() % 10;
+    for (int i = 0; i < vars.r1; i++){
+      for (int j = 0; j < vars.c1; j++){
+        vars.matB[i][j] = rand() % 10;
         }
     } 
   //no threads here
-  //matrixmultnothread(matA,matB,product);
+  matrixmultnothread(vars);
 
   //thread per row
+  
   pthread_t trows[TC_row];
   int tcreation;
 
   for (int i=0;i<TC_row;i++){
-    tcreation=pthread_create(&trows[i],NULL,matrixmultrowthreads,(void*)i);
+    vars.threadid=i;
+    tcreation=pthread_create(&trows[i],NULL,matrixmultrowthreads,(void*)&vars);
     if(tcreation){
       cout<<"cant make thread "<<tcreation<<endl;
       exit(-1);
     }
   }
-
-  showproduct();
-
+   for (int i=0;i<TC_row;i++){
+    pthread_join(trows[i],NULL);
+    }
+    //showproductout(vars);
 }
