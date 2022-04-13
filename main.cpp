@@ -21,6 +21,7 @@
 #define TC_indiv 100
 
 using namespace std;
+using namespace std::chrono;
 
 struct matrices{
   double matA[matC][matR],matB[matC][matR], product[matC][matR];
@@ -28,7 +29,8 @@ struct matrices{
   int r2=matR;
   int c1=matC;
   int c2=matC;
-  vector<int> threadids;
+  long unsigned int tids[TC_row];
+  //vector<int> threadids;
 };
 
 
@@ -44,44 +46,31 @@ void matrixmultnothread(matrices &compute){
 }
 
 
+
 void *matrixmultrowthreads(void *vars){
   matrices *compute=static_cast<matrices*>(vars);
-  int i=69;
-  int tid=gettid();
-
-  /*
-  std::vector<int>::iterator it=find(compute->threadids.begin(),compute->threadids.end(),tid);
-  if(it!=compute->threadids.end()){
-    i=distance(compute->threadids.begin(),it);
-  }
-  else{
-    compute->threadids.push_back(tid);
-  } 
-
-  
-  }
-  */
-  compute->threadids.push_back(tid);
-
-  for(int j=0;j<compute->threadids.size();j++){
-    if(compute->threadids[j]==tid){
-      i=j;
+  int i;
+  long unsigned int tid=gettid();
+  //cout<<"got here";
+  for(i=0;i<TC_row;i++){
+    if(tid==compute->tids[i]){
+      break;
     }
   }
-  if(i!=69){
   for (int j=0;j<matC;j++){
     for(int k=0;k<matC;k++){
       compute->product[i][j] += compute->matA[i][k] *compute->matB[k][j];
     }
   }
-  cout<<i<<endl;
-
+  //cout<<i<<endl;
   pthread_exit(NULL);
-  }
+  
 }
 
 
 
+
+//debug to check content
 void showproductout(matrices output){
   for (int i = 0; i < matR; i++){
     for(int j = 0; j < matC; j++){
@@ -90,7 +79,7 @@ void showproductout(matrices output){
     cout<<endl;
   }
 }
-
+//debug to check if working
 void showmatrices(matrices &vars){
   
   for (int i = 0; i < vars.r1; i++){
@@ -128,6 +117,12 @@ int main(){
   
   matrices vars; 
   srand(time(0));
+
+  const double dur=5.0;
+  long int passes=0;
+
+
+  fillmats(vars);
   int input=69;
   while(input>3){
     cout<<"choose option:\n[1] no threads\n[2] thread per row\n[3] thread per item\nchoice: ";
@@ -135,26 +130,43 @@ int main(){
 
     if(input==1){
       //no threads here
-      fillmats(vars);
-      matrixmultnothread(vars);
+      for(int i=0;i<10;i++){
+        passes=0;
+        auto start = high_resolution_clock::now();
+        while (duration_cast<seconds>(high_resolution_clock::now() - start).count() < dur)
+        {
+          //fillmats(vars);
+          matrixmultnothread(vars);
+          passes++;
+        }
+        cout<<passes<<endl;
+
+      }
     }
     else if(input==2){
-      fillmats(vars);
       //thread per row
       pthread_t trows[TC_row];
-      int tcreation;
-
-      for (int i=0;i<TC_row;i++){
-        //vars.threadid=i;
-        tcreation=pthread_create(&trows[i],NULL,matrixmultrowthreads,(void*)&vars);
-        //cout<<i<<endl;
-        if(tcreation){
-          cout<<"cant make thread "<<tcreation<<endl;
-          exit(-1);
+      for(int i=0;i<TC_row;i++)
+        vars.tids[i]=trows[i];
+      for(int i=0;i<10;i++){
+        passes=0;
+        auto start = high_resolution_clock::now();
+        
+        
+        while (duration_cast<seconds>(high_resolution_clock::now() - start).count() < dur)
+        {
+          //fillmats(vars);
+          for (int i=0;i<TC_row;i++){
+            pthread_create(&trows[i],NULL,matrixmultrowthreads,(void*)&vars);
+          }
+          for (int i=0;i<TC_row;i++){
+            pthread_join(trows[i],NULL);
+          }
+        
+          passes++;
         }
-      }
-      for (int i=0;i<TC_row;i++){
-        pthread_join(trows[i],NULL);
+        cout<<passes<<endl;
+
       }
     }
     else if(input==3){
@@ -166,9 +178,10 @@ int main(){
     else{
       system("CLS");
     }
-    //showmatrices(vars);
-    showproductout(vars);
 
+    //showmatrices(vars);
+    //showproductout(vars);
+    //cout<<endl<<endl;
   }
   
 
