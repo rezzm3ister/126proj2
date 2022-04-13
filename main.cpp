@@ -6,45 +6,77 @@
 #include <cstdlib>
 #include <vector>
 
-#define matX 10
-#define matY 10
+#define matR 10
+#define matC 10
 
 
 using namespace std;
 
-void matrixmultnothread(int &matA[matX][matY[],int &matB[matX][matY[]){
-  
+void matrixmultnothread(double (&matA)[matC][matR],double (&matB)[matC][matR],double (&product)[matC][matR]){
+  for(int i=0;i<matR;i++){
+    for (int j=0;j<matC;j++){
+      for(int k=0;k<matC;k++){
+        product[i][j] += matA[i][k] * matB[k][j];
+      }
+    }
+  }
 }
 
+void showproduct(double (&product)[matC][matR]){
+  for (int i = 0; i < matR; i++){
+    for(int j = 0; j < matC; j++){
+      cout<<product[i][j]<<" ";
+    }
+    cout<<endl;
+  }
+}
+
+void showmatrices(double (&matA)[matC][matR],double (&matB)[matC][matR]){
+  int r1=matR;
+  int r2=matR;
+  int c1=matC;
+  int c2=matC;
+  for (int i = 0; i < r1; i++){
+    for(int j = 0; j < c1; j++){
+      cout<<matA[i][j]<<" ";
+    }
+    cout<<endl;
+  }
+  cout<<endl;         
+  for (int i = 0; i < r1; i++){
+    for(int j = 0; j < c1; j++){
+      cout<<matB[i][j]<<" ";
+    }
+    cout<<endl;
+  }
+}
 
 int main(){
-  int matA[matX][matY],matB[matX][matY];
-  int r1=matY;
-  int r2=matY;
-  int c1=matX;
-  int c2=matX;
+  double matA[matC][matR],matB[matC][matR], product[matC][matR];
+  int r1=matR;
+  int r2=matR;
+  int c1=matC;
+  int c2=matC;
+  srand(time(0));
 
   for (int i = 0; i < r1; i++)
-    for (int j = 0; j < c1; j++)
-      matA[i][j] = rand() % 100;
-           
-    for (int i = 0; i < r1; i++)
+    {
       for (int j = 0; j < c1; j++)
-        matB[i][j] = rand() % 100;
-
-    //display matrices:
-    /*
+      {
+        matA[i][j] = rand() % 10;
+      }
+    }
     for (int i = 0; i < r1; i++){
-      for(int j = 0; j < c1; j++)
-        printf("%d ",matA[i][j]);
-      printf("\n");
+      for (int j = 0; j < c1; j++){
+        matB[i][j] = rand() % 10;
+        }
     }
-    cout<<endl;         
-    for (int i = 0; i < r2; i++){
-      for(int j = 0; j < c2; j++)
-        printf("%d ",matB[i][j]);
-      printf("\n");   
-    }
-    */
+
+
+  matrixmultnothread(matA,matB,product);
+
+  //showmatrices(matA,matB);
+  //cout<<endl;
+  showproduct(product);
 
 }
