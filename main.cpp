@@ -23,12 +23,14 @@
 using namespace std;
 using namespace std::chrono;
 
-struct coords{
+struct coords
+{
   int row;
   int col;
 };
 
-struct matrices{
+struct matrices
+{
   double matA[matC][matR],matB[matC][matR], product[matC][matR];
   int r1=matR;
   int r2=matR;
@@ -42,11 +44,13 @@ struct matrices{
 
 
 
-void matrixmultnothread(matrices &compute){
+void matrixmultnothread(matrices &compute)
+{
   for(int i=0;i<matR;i++){
     for (int j=0;j<matC;j++){
       for(int k=0;k<matC;k++){
-        compute.product[i][j] += compute.matA[i][k] * compute.matB[k][j];
+        compute.product[i][j] += 
+          compute.matA[i][k] * compute.matB[k][j];
       }
     }
   }
@@ -82,7 +86,8 @@ void *matrixmultthreads(void* vars){
   //coords loc=(coords&)coord;
   //cout<<compute->loc.col<<"\n"<<compute->loc.row<<"\n\n\n";
   for(int k=0;k<matC;k++){
-    compute->product[compute->loc.row][compute->loc.col] += compute->matA[compute->loc.row][k]*compute->matB[k][compute->loc.col];
+    compute->product[compute->loc.row][compute->loc.col] += 
+      compute->matA[compute->loc.row][k]*compute->matB[k][compute->loc.col];
   }
   pthread_exit(NULL);
 }
@@ -144,7 +149,9 @@ int main(){
   int input=69;
   while(input>3){
     cout<<"matrix size: "<<matR<<"x"<<matC<<"\n";
-    cout<<"choose option:\n[1] no threads\n[2] thread per row\n[3] thread per item\nchoice: ";
+    cout<<"choose option:\n[1] no threads
+      \n[2] thread per row
+      \n[3] thread per item\nchoice: ";
     cin>>input;
 
     if(input==1){
@@ -152,7 +159,8 @@ int main(){
       for(int i=0;i<10;i++){
         passes=0;
         auto start = high_resolution_clock::now();
-        while (duration_cast<seconds>(high_resolution_clock::now() - start).count() < dur)
+        while (duration_cast<seconds>
+               (high_resolution_clock::now() - start).count() < dur)
         {
           //fillmats(vars);
           matrixmultnothread(vars);
@@ -172,7 +180,8 @@ int main(){
         auto start = high_resolution_clock::now();
         
         
-        while (duration_cast<seconds>(high_resolution_clock::now() - start).count() < dur)
+        while (duration_cast<seconds>
+               (high_resolution_clock::now() - start).count() < dur)
         {
           //fillmats(vars);
           for (int i=0;i<TC_row;i++){
@@ -194,7 +203,8 @@ int main(){
         auto start = high_resolution_clock::now();
         
         pthread_t trows[TC_row][TC_row];
-        while (duration_cast<seconds>(high_resolution_clock::now() - start).count() < dur)
+        while (duration_cast<seconds>
+               (high_resolution_clock::now() - start).count() < dur)
         {
           //fillmats(vars);
           for (int i=0;i<TC_row;i++){
