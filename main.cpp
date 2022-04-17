@@ -28,13 +28,7 @@
 using namespace std;
 using namespace std::chrono;
 
-/*
-struct coords
-{
-  int row;
-  int col;
-};
-*/
+
 struct matrices
 {
   double matA[matC][matR],matB[matC][matR], product[matC][matR];
@@ -42,7 +36,6 @@ struct matrices
   int r2=matR;
   int c1=matC;
   int c2=matC;
-  //coords loc;
   long unsigned int tids[TC_row];
   long unsigned int tidsindiv[TC_row][TC_row];
 };
@@ -224,7 +217,6 @@ int main()
         while (duration_cast<seconds>
                (high_resolution_clock::now() - start).count() < dur)
         {
-          //fillmats(vars);
           for (int i=0;i<TC_row;i++)
           {
             pthread_create(&trows[i],NULL,
@@ -261,13 +253,10 @@ int main()
         while (duration_cast<seconds>
                (high_resolution_clock::now() - start).count() < dur)
         {
-          //fillmats(vars);
           for (int i=0;i<TC_row;i++)
           {
             for (int j=0;j<TC_row;j++)
             {
-              //vars.loc.col=j;
-              //vars.loc.row=i;
               pthread_create(&trows[i][j],NULL,
               matrixmultthreads,(void*)&vars);
             }
