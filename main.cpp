@@ -12,11 +12,11 @@
 #include <algorithm>
 #include <string>
 
-#define matR 10
-#define matC 10
+#define matR 50
+#define matC 50
 
 //make sure TC_row == matR
-#define TC_row 10
+#define TC_row 50
 //make sure TC_indiv == matR*matC
 #define TC_indiv 100
 
@@ -143,6 +143,7 @@ int main(){
   fillmats(vars);
   int input=69;
   while(input>3){
+    cout<<"matrix size: "<<matR<<"x"<<matC<<"\n";
     cout<<"choose option:\n[1] no threads\n[2] thread per row\n[3] thread per item\nchoice: ";
     cin>>input;
 
