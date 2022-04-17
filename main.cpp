@@ -1,7 +1,7 @@
 //alvarez angeles tuyay proj 2
 /**
-*VERY IMPORTANT: make sure to run using 
-*-pthread or -lpthread
+*VERY IMPORTANT: make sure to compile with 
+*-pthread or -lpthread argument in g++
 */
 
 #include <iostream>
@@ -175,7 +175,7 @@ int main()
   while(input>3)
   {
     cout<<"matrix size: "<<matR<<"x"<<matC<<"\n";
-    cout<<"choose option:\n[1] no threads\n[2] thread per row\n[3] thread per item\nchoice: ";
+    cout<<"choose option:\n[1] no threads\n[2] thread per row\n[3] thread per item\n[0] exit\nchoice: ";
     cin>>input;
 
     if(input==1)
@@ -264,9 +264,12 @@ int main()
 
       }
     }
-    else if(input==0){
+    else if(input==0)
+    {
+      return 0;
     }
-    else{
+    else
+    {
       system("CLS");
     }
   }
