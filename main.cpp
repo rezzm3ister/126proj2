@@ -28,12 +28,13 @@
 using namespace std;
 using namespace std::chrono;
 
+/*
 struct coords
 {
   int row;
   int col;
 };
-
+*/
 struct matrices
 {
   double matA[matC][matR],matB[matC][matR], product[matC][matR];
@@ -41,8 +42,9 @@ struct matrices
   int r2=matR;
   int c1=matC;
   int c2=matC;
-  coords loc;
+  //coords loc;
   long unsigned int tids[TC_row];
+  long unsigned int tidsindiv[TC_row][TC_row];
 };
 
 void matrixmultnothread(matrices &compute)
@@ -59,8 +61,6 @@ void matrixmultnothread(matrices &compute)
     }
   }
 }
-
-
 
 void *matrixmultrowthreads(void *vars)
 {
@@ -93,12 +93,25 @@ void *matrixmultrowthreads(void *vars)
 void *matrixmultthreads(void* vars)
 {
   matrices *compute=static_cast<matrices*>(vars);
+  int i,j;
+  long unsigned int tid=gettid();
+
+  for(i=0;i<TC_row;i++)
+  {
+    for(j=0;j<TC_row;j++)
+    {
+      if(tid==compute->tidsindiv[i][j])
+      {
+        break;
+      }
+    }
+  }
 
   for(int k=0;k<matC;k++)
   {
-    compute->product[compute->loc.row][compute->loc.col] += 
-      compute->matA[compute->loc.row][k]*
-      compute->matB[k][compute->loc.col];
+    compute->product[i][j] += 
+      compute->matA[i][k]*
+      compute->matB[k][j];
   }
   pthread_exit(NULL);
 }
@@ -236,6 +249,15 @@ int main()
         auto start = high_resolution_clock::now();
         
         pthread_t trows[TC_row][TC_row];
+        
+        for(int i=0;i<TC_row;i++)
+        {
+          for(int j=0;j<TC_row;j++)
+          {
+            vars.tidsindiv[i][j]=trows[i][j];
+          }
+        }
+
         while (duration_cast<seconds>
                (high_resolution_clock::now() - start).count() < dur)
         {
@@ -244,8 +266,8 @@ int main()
           {
             for (int j=0;j<TC_row;j++)
             {
-              vars.loc.col=j;
-              vars.loc.row=i;
+              //vars.loc.col=j;
+              //vars.loc.row=i;
               pthread_create(&trows[i][j],NULL,
               matrixmultthreads,(void*)&vars);
             }
